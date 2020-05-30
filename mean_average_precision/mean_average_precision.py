@@ -76,7 +76,25 @@ class MeanAveragePrecision:
         Output format:
             {
                 "mAP": float.
-                "ap_threshold": np.array.
+                "<iou_threshold_0>":
+                {
+                    "<cls_id>":
+                    {
+                        "ap": float,
+                        "precision": np.array,
+                        "recall": np.array,
+                    }
+                },
+                ...
+                "<iou_threshold_N>":
+                {
+                    "<cls_id>":
+                    {
+                        "ap": float,
+                        "precision": np.array,
+                        "recall": np.array,
+                    }
+                }
             }
         """
         metric = {}
