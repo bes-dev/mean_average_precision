@@ -44,8 +44,9 @@ preds = np.array([
 # create metric_fn
 metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=0.5)
 
-# add sample to evaluation
-metric_fn.add(preds, gt)
+# add some samples to evaluation
+for i in range(10):
+    metric_fn.add(preds, gt)
 
 # compute metric
 metric = metric_fn.value()
