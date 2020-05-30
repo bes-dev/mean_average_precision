@@ -82,11 +82,15 @@ class MeanAveragePrecision:
         metric = {}
         aps = np.zeros((0, self.num_classes), dtype=np.float32)
         for t in self.iou_thresholds:
+            metric[t] = {}
             aps_t = np.zeros((1, self.num_classes), dtype=np.float32)
             for class_id in range(self.num_classes):
                 aps_t[0, class_id], precision, recall = self._evaluate_class(class_id, t)
+                metric[t][class_id] = {}
+                metric[t][class_id]["ap"] = aps_t[0, class_id]
+                metric[t][class_id]["precision"] = precision
+                metric[t][class_id]["recall"] = recall
             aps = np.concatenate((aps, aps_t), axis=0)
-            metric[f"ap_{t}"] = aps_t.flatten()
         metric["mAP"] = aps.mean(axis=1).mean(axis=0)
         return metric
 
