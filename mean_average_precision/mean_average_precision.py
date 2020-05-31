@@ -38,7 +38,7 @@ class MeanAveragePrecision:
         self.num_classes = num_classes
         self.iou_thresholds = iou_thresholds
         self.is_pascal = is_pascal
-        if not isinstance(self.iou_thresholds, list):
+        if isinstance(self.iou_thresholds, float):
             self.iou_thresholds = [self.iou_thresholds]
         self._init()
 
