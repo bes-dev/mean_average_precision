@@ -45,7 +45,7 @@ preds = np.array([
 metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=0.5, is_pascal=True)
 
 # create metric_fn COCO
-metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=np.arange(0.5, 0.95, 0.05))
+metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=np.arange(0.5, 1.0, 0.05))
 
 # add some samples to evaluation
 for i in range(10):
