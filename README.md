@@ -41,27 +41,19 @@ preds = np.array([
     [413, 390, 515, 459, 0, 0.619459]
 ])
 
-# create metric_fn PASCAL VOC with AP computation in all points
-metric_fn = MeanAveragePrecision(num_classes=1,
-                                 iou_thresholds=0.5)
-
-# create metric_fn PASCAL VOC
-metric_fn = MeanAveragePrecision(num_classes=1,
-                                 iou_thresholds=0.5,
-                                 recall_thresholds=np.arange(0., 1.1, 0.1))
-
-# create metric_fn COCO
-metric_fn = MeanAveragePrecision(num_classes=1,
-                                 iou_thresholds=np.arange(0.5, 1.0, 0.05),
-                                 recall_thresholds=np.arange(0., 1.01, 0.01))
+# create metric_fn
+metric_fn = MeanAveragePrecision(num_classes=1)
 
 # add some samples to evaluation
 for i in range(10):
     metric_fn.add(preds, gt)
 
-# compute metric
-metric = metric_fn.value()
+# compute PASCAL VOC metric
+print(f"VOC PASCAL mAP: {metric_fn.value(iou_thresholds=0.5, recall_thresholds=np.arange(0., 1.1, 0.1))['mAP']}")
 
-# print metric
-print(metric["mAP"])
+# compute PASCAL VOC metric at the all points
+print(f"VOC PASCAL mAP in all points: {metric_fn.value(iou_thresholds=0.5)['mAP']}")
+
+# compute metric COCO metric
+print(f"COCO mAP: {metric_fn.value(iou_thresholds=np.arange(0.5, 1.0, 0.05), recall_thresholds=np.arange(0., 1.01, 0.01))['mAP']}")
 ```

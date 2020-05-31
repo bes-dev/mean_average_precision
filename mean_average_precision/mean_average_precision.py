@@ -30,16 +30,9 @@ class MeanAveragePrecision:
 
     Arguments:
         num_classes (int): number of classes.
-        iou_thresholds (list of float): IOU thresholds.
-        recall_thresholds (np.array or None): specific recall thresholds to the
-                                              computation of average precision.
     """
-    def __init__(self, num_classes, iou_thresholds=[0.5], recall_thresholds=None):
+    def __init__(self, num_classes):
         self.num_classes = num_classes
-        self.iou_thresholds = iou_thresholds
-        if isinstance(self.iou_thresholds, float):
-            self.iou_thresholds = [self.iou_thresholds]
-        self.recall_thresholds = recall_thresholds
         self._init()
 
     def reset(self):
@@ -67,8 +60,13 @@ class MeanAveragePrecision:
         self.imgs_counter = self.imgs_counter + 1
         self.class_counter = np.concatenate((self.class_counter, class_counter), axis=0)
 
-    def value(self):
+    def value(self, iou_thresholds=[0.5], recall_thresholds=None):
         """ Evaluate Mean Average Precision.
+
+        Arguments:
+            iou_thresholds (list of float): IOU thresholds.
+            recall_thresholds (np.array or None): specific recall thresholds to the
+                                                  computation of average precision.
 
         Returns:
             metric (dict): evaluated metrics.
@@ -97,13 +95,18 @@ class MeanAveragePrecision:
                 }
             }
         """
+        if isinstance(iou_thresholds, float):
+            iou_thresholds = [iou_thresholds]
+
         metric = {}
         aps = np.zeros((0, self.num_classes), dtype=np.float32)
-        for t in self.iou_thresholds:
+        for t in iou_thresholds:
             metric[t] = {}
             aps_t = np.zeros((1, self.num_classes), dtype=np.float32)
             for class_id in range(self.num_classes):
-                aps_t[0, class_id], precision, recall = self._evaluate_class(class_id, t)
+                aps_t[0, class_id], precision, recall = self._evaluate_class(
+                    class_id, t, recall_thresholds
+                )
                 metric[t][class_id] = {}
                 metric[t][class_id]["ap"] = aps_t[0, class_id]
                 metric[t][class_id]["precision"] = precision
@@ -112,7 +115,7 @@ class MeanAveragePrecision:
         metric["mAP"] = aps.mean(axis=1).mean(axis=0)
         return metric
 
-    def _evaluate_class(self, class_id, iou_threshold):
+    def _evaluate_class(self, class_id, iou_threshold, recall_thresholds):
         """ Evaluate class.
 
         Arguments:
@@ -146,11 +149,12 @@ class MeanAveragePrecision:
             else:
                 fp[d] = 1
         precision, recall = compute_precision_recall(tp, fp, self.class_counter[:, class_id].sum())
-        if self.recall_thresholds is None:
+        if recall_thresholds is None:
             average_precision = compute_average_precision(precision, recall)
         else:
-            average_precision = compute_average_precision_with_recall_thresholds(precision, recall,
-                                                                                 self.recall_thresholds)
+            average_precision = compute_average_precision_with_recall_thresholds(
+                precision, recall, recall_thresholds
+            )
         return average_precision, precision, recall
 
     def _init(self):
