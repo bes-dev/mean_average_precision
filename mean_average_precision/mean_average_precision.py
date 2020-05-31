@@ -31,15 +31,15 @@ class MeanAveragePrecision:
     Arguments:
         num_classes (int): number of classes.
         iou_thresholds (list of float): IOU thresholds.
-        is_pascal (bool): if true than compute 11-points AP, else compute AP by
-                          all points.
+        recall_thresholds (np.array or None): specific recall thresholds to the
+                                              computation of average precision.
     """
-    def __init__(self, num_classes, iou_thresholds=[0.5], is_pascal=False):
+    def __init__(self, num_classes, iou_thresholds=[0.5], recall_thresholds=None):
         self.num_classes = num_classes
         self.iou_thresholds = iou_thresholds
-        self.is_pascal = is_pascal
         if isinstance(self.iou_thresholds, float):
             self.iou_thresholds = [self.iou_thresholds]
+        self.recall_thresholds = recall_thresholds
         self._init()
 
     def reset(self):
@@ -146,10 +146,11 @@ class MeanAveragePrecision:
             else:
                 fp[d] = 1
         precision, recall = compute_precision_recall(tp, fp, self.class_counter[:, class_id].sum())
-        if not self.is_pascal:
+        if self.recall_thresholds is None:
             average_precision = compute_average_precision(precision, recall)
         else:
-            average_precision = compute_average_precision_pascal(precision, recall)
+            average_precision = compute_average_precision_with_recall_thresholds(precision, recall,
+                                                                                 self.recall_thresholds)
         return average_precision, precision, recall
 
     def _init(self):

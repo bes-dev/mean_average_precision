@@ -65,21 +65,21 @@ def compute_average_precision(precision, recall):
     average_precision = np.sum((recall[ids + 1] - recall[ids]) * precision[ids + 1])
     return average_precision
 
-def compute_average_precision_pascal(precision, recall):
-    """ Compute Avearage Precision by 11-points.
-        VOC PASCAL version of metric.
+def compute_average_precision_with_recall_thresholds(precision, recall, recall_thresholds):
+    """ Compute Avearage Precision by specific points.
 
     Arguments:
         precision (np.array): precision values.
         recall (np.array): recall values.
+        recall_thresholds (np.array): specific recall thresholds.
 
     Returns:
         average_precision (np.array)
     """
     average_precision = 0.
-    for t in np.arange(0., 1.1, 0.1):
+    for t in recall_thresholds:
         p = np.max(precision[recall >= t]) if np.sum(recall >= t) != 0 else 0
-        average_precision = average_precision + p / 11.
+        average_precision = average_precision + p / recall_thresholds.size
     return average_precision
 
 def compute_iou(pred, gt):
