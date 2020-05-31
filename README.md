@@ -42,13 +42,18 @@ preds = np.array([
 ])
 
 # create metric_fn PASCAL VOC with AP computation in all points
-metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=0.5)
+metric_fn = MeanAveragePrecision(num_classes=1,
+                                 iou_thresholds=0.5)
 
 # create metric_fn PASCAL VOC
-metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=0.5, recall_thresholds=np.arange(0., 1.1, 0.1))
+metric_fn = MeanAveragePrecision(num_classes=1,
+                                 iou_thresholds=0.5,
+                                 recall_thresholds=np.arange(0., 1.1, 0.1))
 
 # create metric_fn COCO
-metric_fn = MeanAveragePrecision(num_classes=1, iou_thresholds=np.arange(0.5, 1.0, 0.05), recall_thresholds=np.arange(0., 1.01, 0.01))
+metric_fn = MeanAveragePrecision(num_classes=1,
+                                 iou_thresholds=np.arange(0.5, 1.0, 0.05),
+                                 recall_thresholds=np.arange(0., 1.01, 0.01))
 
 # add some samples to evaluation
 for i in range(10):
