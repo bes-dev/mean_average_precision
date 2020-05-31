@@ -3,7 +3,7 @@
 A simple library for the evaluation of object detectors.
 
 <p align="center">
-  <img src="resources/img0.jpeg" width="450" height="300" />
+  <img src="resources/img0.jpeg"/>
 </p>
 
 In practice, a **higher mAP** value indicates a **better performance** of your detector, given your ground-truth and set of classes.
