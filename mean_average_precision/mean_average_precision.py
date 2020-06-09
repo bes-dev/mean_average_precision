@@ -52,11 +52,12 @@ class MeanAveragePrecision:
         """
         class_counter = np.zeros((1, self.num_classes), dtype=np.int32)
         for c in range(self.num_classes):
-            preds_c = preds[preds[:, 4] == c]
             gt_c = gt[gt[:, 4] == c]
             class_counter[0, c] = gt_c.shape[0]
-            match_table = compute_match_table(preds_c, gt_c, self.imgs_counter)
-            self.match_table[c] = np.concatenate((self.match_table[c], match_table), axis=0)
+            if preds.shape[0] > 0:
+                preds_c = preds[preds[:, 4] == c]
+                match_table = compute_match_table(preds_c, gt_c, self.imgs_counter)
+                self.match_table[c] = np.concatenate((self.match_table[c], match_table), axis=0)
         self.imgs_counter = self.imgs_counter + 1
         self.class_counter = np.concatenate((self.class_counter, class_counter), axis=0)
 
