@@ -52,6 +52,7 @@ class MeanAveragePrecision:
         """
         class_counter = np.zeros((1, self.num_classes), dtype=np.int32)
         for c in range(self.num_classes):
+            gt_c = np.array([])
             if gt.shape[0] > 0:
                 gt_c = gt[gt[:, 4] == c]
                 class_counter[0, c] = gt_c.shape[0]
