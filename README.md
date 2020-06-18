@@ -8,6 +8,12 @@ A simple library for the evaluation of object detectors.
 
 In practice, a **higher mAP** value indicates a **better performance** of your detector, given your ground-truth and set of classes.
 
+## Install package
+
+```bash
+pip install mean_average_precision
+```
+
 ## Install the latest version
 
 ```bash
