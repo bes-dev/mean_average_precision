@@ -192,8 +192,11 @@ def check_box(iou, difficult, crowd, order, matched_ind, iou_threshold, mpolicy=
             idx = order[i]
             if iou[idx] > iou_threshold:
                 if not difficult[idx]:
-                    if not idx in matched_ind or crowd[idx]:
+                    if idx not in matched_ind:
                         result = ('tp', idx)
+                        break
+                    elif crowd[idx]:
+                        result = ('ignore', -1)
                         break
                     else:
                         continue
