@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 import numpy as np
+import pandas as pd
 
 def sort_by_col(array, idx=1):
     """Sort np.array by column."""
@@ -122,28 +123,86 @@ def compute_match_table(preds, gt, img_id):
         img_id (int): image id
 
     Returns:
-        match_table (np.array)
+        match_table (pd.DataFrame)
 
 
     Input format:
         preds: [xmin, ymin, xmax, ymax, class_id, confidence]
-        gt: [xmin, ymin, xmax, ymax, class_id, difficult]
+        gt: [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
 
     Output format:
-        match_table: [img_id, confidence, match_id, iou, difficult]
+        match_table: [img_id, confidence, iou, difficult, crowd]
     """
-    iou = compute_iou(preds, gt)
-    if preds.shape[0] > 0:
-        match_table = np.zeros((preds.shape[0], 5))
-        match_table[:, 0] = img_id
-        match_table[:, 1] = preds[:, 5]
-        if iou.shape[0] > 0 and iou.shape[1] > 0:
-            match_table[:, 2] = iou.argmax(axis=1)
-            match_table[:, 3] = iou.max(axis=1)
-            match_table[:, 4] = gt[match_table[:, 2].astype(int), 5]
-        else:
-            match_table[:, 2] = -1
-            match_table[:, 3] = -1
+    iou = compute_iou(preds, gt).tolist()
+    img_ids = [img_id for i in range(preds.shape[0])]
+    confidence = preds[:, 5].tolist()
+    difficult = np.repeat(gt[:, 5], preds.shape[0], axis=0).reshape(preds[:, 5].shape[0], -1).tolist()
+    crowd = np.repeat(gt[:, 6], preds.shape[0], axis=0).reshape(preds[:, 5].shape[0], -1).tolist()
+    match_table = {
+        "img_id": img_ids,
+        "confidence": confidence,
+        "iou": iou,
+        "difficult": difficult,
+        "crowd": crowd
+    }
+    return pd.DataFrame(match_table, columns=list(match_table.keys()))
+
+
+def row_to_vars(row):
+    """ Convert row of pd.DataFrame to variables.
+
+    Arguments:
+        row (pd.DataFrame): row
+
+    Returns:
+        img_id (int): image index.
+        conf (flaot): confidence of predicted box.
+        iou (np.array): iou between predicted box and gt boxes.
+        difficult (np.array): difficult of gt boxes.
+        crowd (np.array): crowd of gt boxes.
+        order (np.array): sorted order of iou's.
+    """
+    img_id = row["img_id"]
+    conf = row["confidence"]
+    iou = np.array(row["iou"])
+    difficult = np.array(row["difficult"])
+    crowd = np.array(row["crowd"])
+    order = np.argsort(iou)[::-1]
+    return img_id, conf, iou, difficult, crowd, order
+
+
+def check_box(iou, difficult, crowd, order, matched_ind, iou_threshold, mpolicy="greedy"):
+    """ Check box for tp/fp/ignore.
+
+    Arguments:
+        iou (np.array): iou between predicted box and gt boxes.
+        difficult (np.array): difficult of gt boxes.
+        order (np.array): sorted order of iou's.
+        matched_ind (list): matched gt indexes.
+        iou_threshold (flaot): iou threshold.
+        mpolicy (str): box matching policy.
+                       greedy - greedy matching like VOC PASCAL.
+                       soft - soft matching like COCO.
+    """
+    assert mpolicy in ["greedy", "soft"]
+    if len(order):
+        result = ('fp', -1)
+        n_check = 1 if mpolicy == "greedy" else len(order)
+        for i in range(n_check):
+            idx = order[i]
+            if iou[idx] > iou_threshold:
+                if not difficult[idx]:
+                    if not idx in matched_ind or crowd[idx]:
+                        result = ('tp', idx)
+                        break
+                    else:
+                        continue
+                else:
+                    result = ('ignore', -1)
+                    break
+            else:
+                result = ('fp', -1)
+                break
     else:
-        match_table = np.zeros((0, 5))
-    return match_table
+        result = ('fp', -1)
+    return result

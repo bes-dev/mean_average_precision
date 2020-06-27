@@ -48,10 +48,10 @@ class MeanAveragePrecision:
 
         Input format:
             preds: [xmin, ymin, xmax, ymax, class_id, confidence]
-            gt: [xmin, ymin, xmax, ymax, class_id, difficult]
+            gt: [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
         """
         assert preds.ndim == 2 and preds.shape[1] == 6
-        assert gt.ndim == 2 and gt.shape[1] == 6
+        assert gt.ndim == 2 and gt.shape[1] == 7
         class_counter = np.zeros((1, self.num_classes), dtype=np.int32)
         for c in range(self.num_classes):
             gt_c = np.zeros((0, 6))
@@ -61,17 +61,20 @@ class MeanAveragePrecision:
             if preds.shape[0] > 0:
                 preds_c = preds[preds[:, 4] == c]
                 match_table = compute_match_table(preds_c, gt_c, self.imgs_counter)
-                self.match_table[c] = np.concatenate((self.match_table[c], match_table), axis=0)
+                self.match_table[c] = self.match_table[c].append(match_table)
         self.imgs_counter = self.imgs_counter + 1
         self.class_counter = np.concatenate((self.class_counter, class_counter), axis=0)
 
-    def value(self, iou_thresholds=[0.5], recall_thresholds=None):
+    def value(self, iou_thresholds=[0.5], recall_thresholds=None, mpolicy="greedy"):
         """ Evaluate Mean Average Precision.
 
         Arguments:
             iou_thresholds (list of float): IOU thresholds.
             recall_thresholds (np.array or None): specific recall thresholds to the
                                                   computation of average precision.
+            mpolicy (str): box matching policy.
+                           greedy - greedy matching like VOC PASCAL.
+                           soft - soft matching like COCO.
 
         Returns:
             metric (dict): evaluated metrics.
@@ -110,7 +113,7 @@ class MeanAveragePrecision:
             aps_t = np.zeros((1, self.num_classes), dtype=np.float32)
             for class_id in range(self.num_classes):
                 aps_t[0, class_id], precision, recall = self._evaluate_class(
-                    class_id, t, recall_thresholds
+                    class_id, t, recall_thresholds, mpolicy
                 )
                 metric[t][class_id] = {}
                 metric[t][class_id]["ap"] = aps_t[0, class_id]
@@ -120,38 +123,45 @@ class MeanAveragePrecision:
         metric["mAP"] = aps.mean(axis=1).mean(axis=0)
         return metric
 
-    def _evaluate_class(self, class_id, iou_threshold, recall_thresholds):
+    def _evaluate_class(self, class_id, iou_threshold, recall_thresholds, mpolicy="greedy"):
         """ Evaluate class.
 
         Arguments:
             class_id (int): index of evaluated class.
             iou_threshold (float): iou threshold.
+            recall_thresholds (np.array or None): specific recall thresholds to the
+                                                  computation of average precision.
+            mpolicy (str): box matching policy.
+                           greedy - greedy matching like VOC PASCAL.
+                           soft - soft matching like COCO.
 
         Returns:
             average_precision (np.array)
             precision (np.array)
             recall (np.array)
         """
-        table = sort_by_col(self.match_table[class_id], idx=1)
+        table = self.match_table[class_id].sort_values(by=['confidence'], ascending=False)
         matched_ind = {}
-        nd = table.shape[0]
+        nd = len(table)
         tp = np.zeros(nd, dtype=np.float64)
         fp = np.zeros(nd, dtype=np.float64)
         for d in range(nd):
-            img_id, conf, gt_id, iou, difficult = table[d]
-            img_id = int(img_id)
-            gt_id = int(gt_id)
-            difficult = int(difficult)
-            if iou > iou_threshold:
-                if not difficult:
-                    if not img_id in matched_ind:
-                        matched_ind[img_id] = []
-                    if not gt_id in matched_ind[img_id]:
-                        tp[d] = 1
-                        matched_ind[img_id].append(gt_id)
-                    else:
-                        fp[d] = 1
-            else:
+            img_id, conf, iou, difficult, crowd, order = row_to_vars(table.iloc[d])
+            if img_id not in matched_ind:
+                matched_ind[img_id] = []
+            res, idx = check_box(
+                iou,
+                difficult,
+                crowd,
+                order,
+                matched_ind[img_id],
+                iou_threshold,
+                mpolicy
+            )
+            if res == 'tp':
+                tp[d] = 1
+                matched_ind[img_id].append(idx)
+            elif res == 'fp':
                 fp[d] = 1
         precision, recall = compute_precision_recall(tp, fp, self.class_counter[:, class_id].sum())
         if recall_thresholds is None:
@@ -166,6 +176,7 @@ class MeanAveragePrecision:
         """ Initialize internal state."""
         self.imgs_counter = 0
         self.class_counter = np.zeros((0, self.num_classes), dtype=np.int32)
+        columns = ['img_id', 'confidence', 'iou', 'difficult', 'crowd']
         self.match_table = []
         for i in range(self.num_classes):
-            self.match_table.append(np.zeros((0, 5), dtype=np.float32))
+            self.match_table.append(pd.DataFrame(columns=columns))
