@@ -54,12 +54,10 @@ class MeanAveragePrecision:
         assert gt.ndim == 2 and gt.shape[1] == 7
         class_counter = np.zeros((1, self.num_classes), dtype=np.int32)
         for c in range(self.num_classes):
-            gt_c = np.zeros((0, 6))
-            if gt.shape[0] > 0:
-                gt_c = gt[gt[:, 4] == c]
-                class_counter[0, c] = gt_c.shape[0]
-            if preds.shape[0] > 0:
-                preds_c = preds[preds[:, 4] == c]
+            gt_c = gt[gt[:, 4] == c]
+            class_counter[0, c] = gt_c.shape[0]
+            preds_c = preds[preds[:, 4] == c]
+            if preds_c.shape[0] > 0:
                 match_table = compute_match_table(preds_c, gt_c, self.imgs_counter)
                 self.match_table[c] = self.match_table[c].append(match_table)
         self.imgs_counter = self.imgs_counter + 1
