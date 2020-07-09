@@ -150,12 +150,6 @@ def compute_match_table(preds, gt, img_id):
         match_table["iou"] = _empty_array_2d(preds.shape[0])
         match_table["difficult"] = _empty_array_2d(preds.shape[0])
         match_table["crowd"] = _empty_array_2d(preds.shape[0])
-    # print(preds.shape[0], preds[:, 5].shape[0])
-    # # difficult = np.repeat(gt[:, 5], preds.shape[0], axis=0).reshape(preds[:, 5].shape[0], -1).tolist()
-    # # crowd = np.repeat(gt[:, 6], preds.shape[0], axis=0).reshape(preds[:, 5].shape[0], -1).tolist()
-    # for k, v in match_table.items():
-    #     print(k, len(v))
-    # print(match_table)
     return pd.DataFrame(match_table, columns=list(match_table.keys()))
 
 def row_to_vars(row):

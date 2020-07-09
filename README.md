@@ -23,7 +23,7 @@ pip install --upgrade git+https://github.com/bes-dev/mean_average_precision.git
 ## Example
 ```python
 import numpy as np
-from mean_average_precision import MeanAveragePrecision
+from mean_average_precision import get_metrics_list, build_evaluation_metric
 
 # [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
 gt = np.array([
@@ -47,8 +47,11 @@ preds = np.array([
     [413, 390, 515, 459, 0, 0.619459]
 ])
 
+# print list of available metrics
+print(get_metrics_list())
+
 # create metric_fn
-metric_fn = MeanAveragePrecision(num_classes=1)
+metric_fn = build_evaluation_metric("map_2d", async_mode=True, num_classes=data['num_classes'])
 
 # add some samples to evaluation
 for i in range(10):

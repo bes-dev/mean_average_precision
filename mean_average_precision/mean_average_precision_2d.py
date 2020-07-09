@@ -22,10 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from .metric_base import MetricBase
 import numpy as np
 from .utils import *
 
-class MeanAveragePrecision:
+class MeanAveragePrecision2d(MetricBase):
     """ Mean Average Precision for object detection.
 
     Arguments:

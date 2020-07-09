@@ -21,6 +21,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .metric_builder import build_evaluation_metric, get_metrics_list
-from .mean_average_precision_2d import MeanAveragePrecision2d
-from .multiprocessing import MetricMultiprocessing
+
+class MetricBase:
+    """ Implements base interface for evaluation metrics."""
+    def add(self, *args, **kwargs):
+        """ Add sample to metric."""
+        raise NotImplemented
+
+    def value(self, *args, **kwargs):
+        """ Get metric value."""
+        raise NotImplemented
+
+    def reset(self):
+        """ Reset internal state of metric."""
+        raise NotImplemented
