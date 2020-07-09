@@ -21,6 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from .metric_builder import build_evaluation_metric, get_metrics_list
+from .metric_builder import MetricBuilder
 from .mean_average_precision_2d import MeanAveragePrecision2d
 from .multiprocessing import MetricMultiprocessing
