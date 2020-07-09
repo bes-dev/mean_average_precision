@@ -133,20 +133,24 @@ def compute_match_table(preds, gt, img_id):
     Output format:
         match_table: [img_id, confidence, iou, difficult, crowd]
     """
-    iou = compute_iou(preds, gt).tolist()
-    img_ids = [img_id for i in range(preds.shape[0])]
-    confidence = preds[:, 5].tolist()
-    difficult = np.repeat(gt[:, 5], preds.shape[0], axis=0).reshape(preds[:, 5].shape[0], -1).tolist()
-    crowd = np.repeat(gt[:, 6], preds.shape[0], axis=0).reshape(preds[:, 5].shape[0], -1).tolist()
-    match_table = {
-        "img_id": img_ids,
-        "confidence": confidence,
-        "iou": iou,
-        "difficult": difficult,
-        "crowd": crowd
-    }
-    return pd.DataFrame(match_table, columns=list(match_table.keys()))
+    def _tile(arr, nreps, axis=0):
+        return np.repeat(arr, nreps, axis=axis).reshape(nreps, -1).tolist()
 
+    def _empty_array_2d(size):
+        return [[] for i in range(size)]
+
+    match_table = {}
+    match_table["img_id"] = [img_id for i in range(preds.shape[0])]
+    match_table["confidence"] = preds[:, 5].tolist()
+    if gt.shape[0] > 0:
+        match_table["iou"] = compute_iou(preds, gt).tolist()
+        match_table["difficult"] = _tile(gt[:, 5], preds.shape[0], axis=0)
+        match_table["crowd"] = _tile(gt[:, 6], preds.shape[0], axis=0)
+    else:
+        match_table["iou"] = _empty_array_2d(preds.shape[0])
+        match_table["difficult"] = _empty_array_2d(preds.shape[0])
+        match_table["crowd"] = _empty_array_2d(preds.shape[0])
+    return pd.DataFrame(match_table, columns=list(match_table.keys()))
 
 def row_to_vars(row):
     """ Convert row of pd.DataFrame to variables.
@@ -169,7 +173,6 @@ def row_to_vars(row):
     crowd = np.array(row["crowd"])
     order = np.argsort(iou)[::-1]
     return img_id, conf, iou, difficult, crowd, order
-
 
 def check_box(iou, difficult, crowd, order, matched_ind, iou_threshold, mpolicy="greedy"):
     """ Check box for tp/fp/ignore.
