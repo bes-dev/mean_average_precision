@@ -42,6 +42,7 @@ def create_metric_fn(metric_type, *args, **kwargs):
     manager.start()
     return getattr(manager, str(metric_type))(*args, **kwargs)
 
+
 class MetricMultiprocessing(MetricBase):
     """ Implements parallelism at the metric level.
 
@@ -78,16 +79,11 @@ class MetricMultiprocessing(MetricBase):
         self.queue.put((preds, gt))
 
     def value(self, *args, **kwargs):
-        """ Evaluate Mean Average Precision.
+        """ Evaluate Metric.
         Asynchronous wrapper for 'value' method.
 
         Arguments:
-            iou_thresholds (list of float): IOU thresholds.
-            recall_thresholds (np.array or None): specific recall thresholds to the
-                                                  computation of average precision.
-            mpolicy (str): box matching policy.
-                           greedy - greedy matching like VOC PASCAL.
-                           soft - soft matching like COCO.
+            *args, **kwargs: metric specific arguments.
 
         Returns:
             metric (dict): evaluated metrics.
@@ -97,7 +93,7 @@ class MetricMultiprocessing(MetricBase):
         return self.metric_fn.value(*args, **kwargs)
 
     def reset(self):
-        """Reset stored data.
+        """ Reset stored data.
         Asynchronous wrapper for 'reset' method.
         """
         self._reset_proc()
