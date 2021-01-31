@@ -22,5 +22,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 from .metric_builder import MetricBuilder
-from mean_average_precision_2d import MeanAveragePrecision2d
-from multiprocessing import MetricMultiprocessing
+from .mean_average_precision_2d import MeanAveragePrecision2d
+from .multiprocessing import MetricMultiprocessing
