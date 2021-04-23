@@ -26,7 +26,7 @@ from setuptools import setup, find_packages
 
 readme = open('README.md').read()
 
-VERSION = '0.0.2.1'
+VERSION = '2021.4.23.0'
 
 requirements = [
     'numpy',
