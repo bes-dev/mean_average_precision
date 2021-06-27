@@ -6,6 +6,11 @@ A simple library for the evaluation of object detectors.
   <img src="resources/img0.jpeg"/>
 </p>
 
+[![Downloads](https://pepy.tech/badge/mean-average-precision)](https://pepy.tech/project/mean-average-precision)
+[![Downloads](https://pepy.tech/badge/mean-average-precision/month)](https://pepy.tech/project/mean-average-precision)
+[![Downloads](https://pepy.tech/badge/mean-average-precision/week)](https://pepy.tech/project/mean-average-precision)
+
+
 In practice, a **higher mAP** value indicates a **better performance** of your detector, given your ground-truth and set of classes.
 
 ## Install package
