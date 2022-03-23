@@ -24,6 +24,7 @@ SOFTWARE.
 
 from .metric_base import MetricBase
 import numpy as np
+import pandas as pd
 from .utils import *
 
 class MeanAveragePrecision2d(MetricBase):
@@ -60,7 +61,7 @@ class MeanAveragePrecision2d(MetricBase):
             preds_c = preds[preds[:, 4] == c]
             if preds_c.shape[0] > 0:
                 match_table = compute_match_table(preds_c, gt_c, self.imgs_counter)
-                self.match_table[c] = self.match_table[c].append(match_table)
+                self.match_table[c] = pd.concat([self.match_table[c], match_table], axis=0, join='outer')
         self.imgs_counter = self.imgs_counter + 1
         self.class_counter = np.concatenate((self.class_counter, class_counter), axis=0)
 
